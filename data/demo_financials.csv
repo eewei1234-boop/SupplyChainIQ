@@ -1,0 +1,10 @@
+company,fiscal_year,period_start,period_end,publication_date,currency,revenue,operating_income,inventory,cost_of_revenue,source_url,source_note,data_type
+Infineon Technologies,2023,2022-10-01,2023-09-30,Not applicable (synthetic),EUR,1000,150,200,650,synthetic://demo,FICTIONAL example; not a company disclosure,synthetic
+Infineon Technologies,2024,2023-10-01,2024-09-30,Not applicable (synthetic),EUR,1100,140,230,730,synthetic://demo,FICTIONAL example; not a company disclosure,synthetic
+Infineon Technologies,2025,2024-10-01,2025-09-30,Not applicable (synthetic),EUR,1200,130,260,810,synthetic://demo,FICTIONAL example; not a company disclosure,synthetic
+onsemi,2023,2023-01-01,2023-12-31,Not applicable (synthetic),USD,1250,170,240,800,synthetic://demo,FICTIONAL example; not a company disclosure,synthetic
+onsemi,2024,2024-01-01,2024-12-31,Not applicable (synthetic),USD,1350,160,270,880,synthetic://demo,FICTIONAL example; not a company disclosure,synthetic
+onsemi,2025,2025-01-01,2025-12-31,Not applicable (synthetic),USD,1450,150,300,960,synthetic://demo,FICTIONAL example; not a company disclosure,synthetic
+STMicroelectronics,2023,2023-01-01,2023-12-31,Not applicable (synthetic),USD,1500,190,280,950,synthetic://demo,FICTIONAL example; not a company disclosure,synthetic
+STMicroelectronics,2024,2024-01-01,2024-12-31,Not applicable (synthetic),USD,1600,180,310,1030,synthetic://demo,FICTIONAL example; not a company disclosure,synthetic
+STMicroelectronics,2025,2025-01-01,2025-12-31,Not applicable (synthetic),USD,1700,170,340,1110,synthetic://demo,FICTIONAL example; not a company disclosure,synthetic
