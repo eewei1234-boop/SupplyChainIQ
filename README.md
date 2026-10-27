@@ -180,3 +180,51 @@ always accompany comparisons.
 
 These Phase 2 commands supersede the Phase 1 note that no live API client exists.
 Automated PDF extraction, industry ingestion and AI features remain future work.
+
+## Phase 2.5: review and approval workflow
+
+The repository includes a review layer for the financial-observations-for-review
+archive produced by the extraction workflow. Place the archive contents under
+`data/ingestion/`: company CSV files at that level and the original SEC JSON
+files under `data/ingestion/evidence/`. Then run:
+
+```bash
+python -m scripts.review_financial_data
+```
+
+The command writes `data/ingestion/review_observations.csv` and a summary. It
+rechecks each row's evidence SHA-256 digest and exact SEC issuer, concept,
+accession, period and value. It labels repeated same-value periods across
+filings separately from conflicting duplicate periods. It never drops either
+filing and never chooses the newest filing automatically.
+
+The approved comparison file is
+`data/approved_financial_observations.csv`. It is intentionally empty until a
+human has reconciled the original filing and explicitly sets both
+`verification_status=reviewed`, `review_status=approved`, and a review reason
+containing `approved after source reconciliation`. The dashboard's real-data
+mode reads only that approved file. Extracted, unreconciled, duplicate and
+synthetic rows cannot appear in the real comparison.
+
+The attached Phase 2.5 review ZIP was not available in the coding workspace, so
+no company CSV or SEC JSON could be inspected here. The committed review summary
+therefore records zero observations and the dashboard reports onsemi and ST as
+pending source reconciliation. Infineon remains awaiting official-report
+verification. No values were copied, inferred or marked verified. Once the
+archive is available, rerun the command and inspect every `review_reason` before
+approving any row.
+
+The dashboard shows a last extraction attempt from `refresh_status.json`, but
+this is a freshness indicator for the extraction process, not proof that values
+are current. Approved observations retain source URLs, periods, filing dates and
+approval status in the review artifacts. Native currencies and fiscal periods
+remain separate; comparisons should use compatible period types and period-end
+dates. Gross margin is calculated only when reviewed revenue and cost of revenue
+are both present. Missing metrics remain missing.
+
+For Infineon, use `supplychainiq.official_reports.import_report_observations` with
+the downloaded official annual or quarterly report bytes and its official HTTPS
+URL. The helper hashes the source document and starts the rows as pending review;
+it does not parse PDFs or certify a transcription. Record the report's table/page,
+publication date, fiscal calendar and units in the observation note before human
+approval. Do not bypass website restrictions or use figures from search snippets.

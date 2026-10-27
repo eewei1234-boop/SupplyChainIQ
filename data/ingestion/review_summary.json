@@ -1,0 +1,9 @@
+{
+  "input_archive_present":false,
+  "observation_count":0,
+  "source_reconciled_pending_approval":0,
+  "repeated_historical_pending_approval":0,
+  "duplicate_period_unresolved":0,
+  "approved_count":0,
+  "note":"No observations are approved automatically. Missing ZIP\/CSV evidence remains empty."
+}
