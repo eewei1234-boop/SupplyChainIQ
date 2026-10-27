@@ -180,3 +180,64 @@ always accompany comparisons.
 
 These Phase 2 commands supersede the Phase 1 note that no live API client exists.
 Automated PDF extraction, industry ingestion and AI features remain future work.
+
+## Phase 2.5: review and approval workflow
+
+The repository includes a review layer for the financial-observations-for-review
+archive produced by the extraction workflow. Place the archive contents under
+`data/ingestion/`: company CSV files at that level and the original SEC JSON
+files under `data/ingestion/evidence/`. Then run:
+
+```bash
+python -m scripts.review_financial_data
+```
+
+The command writes `data/ingestion/review_observations.csv` and a summary. It
+rechecks each row's evidence SHA-256 digest and exact SEC issuer, concept,
+accession, period and value. It labels repeated same-value periods across
+filings separately from conflicting duplicate periods. It never drops either
+filing and never chooses the newest filing automatically.
+
+The approved comparison file is
+`data/approved_financial_observations.csv`. It is intentionally empty until a
+human has reconciled the original filing and explicitly sets both
+`verification_status=reviewed`, `review_status=approved`, and a review reason
+containing `approved after source reconciliation`. The dashboard's real-data
+mode reads only that approved file. Extracted, unreconciled, duplicate and
+synthetic rows cannot appear in the real comparison.
+
+The review command never overwrites `data/approved_financial_observations.csv`.
+To approve the first record, copy a reconciled row from
+`data/ingestion/review_observations.csv` into that separate file, check the
+original SEC filing and duplicate-period context, then set
+`verification_status` to `reviewed`, `review_status` to `approved`, and add
+`approved after source reconciliation` to `review_reason`. Keep one filing
+context per metric and period. Run the review command again to refresh review
+output; your approved file will be preserved, and the dashboard will read it
+from `data/approved_financial_observations.csv`.
+
+The Phase 2.5 review archive currently contains 172 onsemi observations, 29
+STMicroelectronics observations and two SEC Company Facts JSON files. The review
+matches all 201 rows to their issuer, concept, accession, period, value and
+evidence hash. It identifies 161 same-value historical repeats across filings
+and 40 observations with a single current filing context. There are no
+conflicting values in this archive. Repeated values still require a reviewer to
+choose the filing context; they are retained rather than silently discarded.
+Infineon remains awaiting official-report verification. No values were marked
+approved or verified automatically. Inspect every `review_reason` before
+approving any row.
+
+The dashboard shows a last extraction attempt from `refresh_status.json`, but
+this is a freshness indicator for the extraction process, not proof that values
+are current. Approved observations retain source URLs, periods, filing dates and
+approval status in the review artifacts. Native currencies and fiscal periods
+remain separate; comparisons should use compatible period types and period-end
+dates. Gross margin is calculated only when reviewed revenue and cost of revenue
+are both present. Missing metrics remain missing.
+
+For Infineon, use `supplychainiq.official_reports.import_report_observations` with
+the downloaded official annual or quarterly report bytes and its official HTTPS
+URL. The helper hashes the source document and starts the rows as pending review;
+it does not parse PDFs or certify a transcription. Record the report's table/page,
+publication date, fiscal calendar and units in the observation note before human
+approval. Do not bypass website restrictions or use figures from search snippets.
