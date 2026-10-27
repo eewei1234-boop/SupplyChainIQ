@@ -241,3 +241,24 @@ URL. The helper hashes the source document and starts the rows as pending review
 it does not parse PDFs or certify a transcription. Record the report's table/page,
 publication date, fiscal calendar and units in the observation note before human
 approval. Do not bypass website restrictions or use figures from search snippets.
+
+## Phase 2.6: FY2024/FY2025 annual candidate review
+
+`python -m scripts.build_annual_review` creates concise candidate tables at
+`data/review/onsemi_annual_fy2024_fy2025.csv` and
+`data/review/STMicroelectronics_annual_fy2024_fy2025.csv`. Each table contains
+revenue, cost of revenue, operating income and the latest year-end inventory
+balance for FY2024 and FY2025. It preserves all candidate accession numbers and
+filing URLs. Earlier quarterly inventory balances stay in the 201-row source
+archive and are not confused with year-end inventory.
+
+The cached SEC Company Facts values reconcile exactly, but the SEC filing pages
+returned `403 Forbidden` in this environment. Therefore every candidate has
+`independently_verified=false` and `approval_status=pending_human_filing_review`.
+The approved dataset remains empty. Before approving, open each listed filing,
+confirm consolidated company scope, statement/table, reported units, fiscal
+period and whether a later filing is an amendment or a comparative repeat. For
+onsemi FY2024 and ST FY2024, multiple filings report the same values; do not
+choose a filing just because it is newest. Onsemi FY2024 year-end inventory is
+2,242.0 USD millions; onsemi FY2025 is 1,989.6. ST FY2024 is 2,794.0 and ST
+FY2025 is 3,136.0, all pending filing review.
