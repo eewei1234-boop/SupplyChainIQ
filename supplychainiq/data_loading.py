@@ -22,7 +22,7 @@ def load_approved_data(source=None):
     """Load only the human-approved observation set into the Phase 1 schema."""
     from .ingestion import annual_dashboard_rows, validate_observations
 
-    source = source or DATA_DIR.parent / "approved_financial_observations.csv"
+    source = source or DATA_DIR / "approved_financial_observations.csv"
     source = Path(source)
     if not source.exists() or source.stat().st_size == 0:
         return pd.DataFrame(columns=COLUMNS)
@@ -52,7 +52,7 @@ def load_approved_data(source=None):
 
 def load_approved_observations(source=None):
     """Return approved observation metadata for source and status display."""
-    source = source or DATA_DIR.parent / "approved_financial_observations.csv"
+    source = source or DATA_DIR / "approved_financial_observations.csv"
     source = Path(source)
     if not source.exists() or source.stat().st_size == 0:
         return pd.DataFrame()

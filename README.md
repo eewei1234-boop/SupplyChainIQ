@@ -206,6 +206,16 @@ containing `approved after source reconciliation`. The dashboard's real-data
 mode reads only that approved file. Extracted, unreconciled, duplicate and
 synthetic rows cannot appear in the real comparison.
 
+The review command never overwrites `data/approved_financial_observations.csv`.
+To approve the first record, copy a reconciled row from
+`data/ingestion/review_observations.csv` into that separate file, check the
+original SEC filing and duplicate-period context, then set
+`verification_status` to `reviewed`, `review_status` to `approved`, and add
+`approved after source reconciliation` to `review_reason`. Keep one filing
+context per metric and period. Run the review command again to refresh review
+output; your approved file will be preserved, and the dashboard will read it
+from `data/approved_financial_observations.csv`.
+
 The Phase 2.5 review archive currently contains 172 onsemi observations, 29
 STMicroelectronics observations and two SEC Company Facts JSON files. The review
 matches all 201 rows to their issuer, concept, accession, period, value and

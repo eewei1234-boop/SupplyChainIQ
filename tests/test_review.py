@@ -5,6 +5,7 @@ import pandas as pd
 import pytest
 
 from supplychainiq.ingestion import FIELDS, extract_sec
+from supplychainiq.data_loading import load_approved_data
 from supplychainiq.review import approved_observations, reconcile_observation, review_extracted_directory
 
 
@@ -23,7 +24,7 @@ def write_extract(tmp_path, payload=None):
     raw = json.dumps(payload).encode()
     digest = sha256(raw).hexdigest()
     evidence = tmp_path / "evidence"
-    evidence.mkdir()
+    evidence.mkdir(parents=True)
     (evidence / f"{digest}.json").write_bytes(raw)
     rows = extract_sec(payload, "onsemi", digest=digest, retrieved_at="2026-10-27T00:00:00+00:00")
     pd.DataFrame(rows, columns=FIELDS).to_csv(tmp_path / "onsemi.csv", index=False)
@@ -98,3 +99,35 @@ def test_approval_does_not_silently_choose_between_duplicate_periods(tmp_path):
     duplicate["accession"] = "0001097864-24-000099"
     candidates = pd.concat([reviewed.iloc[[0]], duplicate], ignore_index=True)
     assert approved_observations(candidates).empty
+
+
+def test_dashboard_reads_approved_file_from_data_directory(tmp_path, monkeypatch):
+    rows, _ = write_extract(tmp_path / "ingestion")
+    approved = pd.DataFrame(rows)
+    approved["verification_status"] = "reviewed"
+    approved["reconciliation_status"] = "source_reconciled_pending_approval"
+    approved["reconciliation_reason"] = "Exact SEC fact and evidence hash match"
+    approved["review_status"] = "approved"
+    approved["review_reason"] = "approved after source reconciliation"
+    approved["evidence_file"] = approved["evidence_sha256"] + ".json"
+    data_dir = tmp_path / "data"
+    data_dir.mkdir()
+    approved.to_csv(data_dir / "approved_financial_observations.csv", index=False)
+    monkeypatch.setattr("supplychainiq.data_loading.DATA_DIR", data_dir)
+    result = load_approved_data()
+    assert len(result) == 1
+    assert result.iloc[0].company == "onsemi"
+    assert result.iloc[0].data_type == "public"
+
+
+def test_review_run_never_overwrites_existing_approved_records(tmp_path):
+    from scripts.review_financial_data import run_review
+
+    write_extract(tmp_path / "data" / "ingestion")
+    approved_path = tmp_path / "data" / "approved_financial_observations.csv"
+    approved_path.parent.mkdir(exist_ok=True)
+    original = "manually approved record,keep this exact file\n"
+    approved_path.write_text(original)
+    status = run_review(tmp_path)
+    assert status["observation_count"] == 5
+    assert approved_path.read_text() == original
