@@ -1,0 +1,19 @@
+{
+  "attempted_at": "2026-10-27T04:32:05.448736+00:00",
+  "companies": {
+    "onsemi": {
+      "status": "unavailable",
+      "error": "Set SEC_USER_AGENT to an application name and real contact email per SEC fair-access guidance",
+      "existing_data_preserved": true
+    },
+    "STMicroelectronics": {
+      "status": "unavailable",
+      "error": "Set SEC_USER_AGENT to an application name and real contact email per SEC fair-access guidance",
+      "existing_data_preserved": true
+    },
+    "Infineon Technologies": {
+      "status": "unavailable",
+      "reason": "Official report extraction requires manual source reconciliation; no figures populated"
+    }
+  }
+}

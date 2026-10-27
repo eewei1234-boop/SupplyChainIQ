@@ -28,6 +28,20 @@ Revenue is charted separately by currency, without currency conversion. Margins 
 
 Official source starting points: [Infineon](https://www.infineon.com/about/investor/reports-and-presentations), [onsemi](https://investors.onsemi.com/financials/annual-reports-and-proxy), [STMicroelectronics](https://investors.st.com/financial-information/annual-and-semi-annual-reports). Verify exact disclosure URLs, periods, units, and notes before importing.""")
     st.download_button("Download CSV template", load_data().to_csv(index=False), "financial_template.csv", "text/csv")
+with st.expander("Phase 2 · Ingestion evidence and availability"):
+    import json
+    from pathlib import Path
+    import pandas as pd
+    evidence_dir = Path(__file__).resolve().parent / "data" / "ingestion"
+    status_file = evidence_dir / "refresh_status.json"
+    st.caption("Extracted observations are pending review. They do not automatically enter the annual comparison. Quarterly and year-to-date records remain separate.")
+    if status_file.exists():
+        st.json(json.loads(status_file.read_text()))
+    for observation_file in sorted(evidence_dir.glob("*.csv")):
+        observations = pd.read_csv(observation_file)
+        st.write(observation_file.stem)
+        st.dataframe(observations, hide_index=True)
+        st.download_button(f"Download {observation_file.stem} observations", observations.to_csv(index=False), observation_file.name)
 if raw.empty:
     st.warning("No verified public financial figures are bundled. Company websites were inaccessible during setup. Upload a sourced CSV or enable synthetic demonstration data in the sidebar.")
     st.stop()
