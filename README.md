@@ -262,3 +262,30 @@ onsemi FY2024 and ST FY2024, multiple filings report the same values; do not
 choose a filing just because it is newest. Onsemi FY2024 year-end inventory is
 2,242.0 USD millions; onsemi FY2025 is 1,989.6. ST FY2024 is 2,794.0 and ST
 FY2025 is 3,136.0, all pending filing review.
+
+## Phase 3: Supply Chain Risk Intelligence
+
+The dashboard now includes a deterministic risk-screening section. It reads the
+approved dataset in real-data mode and the explicitly labelled demo dataset only
+when the synthetic toggle is enabled. Infineon remains visible as unavailable
+until approved figures are added.
+
+The rules compare consecutive annual periods in the same native currency:
+
+- Demand: revenue decline.
+- Inventory: year-end inventory growth, inventory-to-revenue change, and the
+  combination of rising inventory with falling revenue.
+- Profitability: gross-margin and operating-margin declines.
+
+Default Moderate/Elevated thresholds are configurable in the sidebar. Each
+signal shows its observed change, threshold, explanation, source URL and a
+practical demand-planning or supply-planning recommendation. The screening
+levels are Low, Moderate and Elevated indicators only. They do not confirm an
+operational disruption, identify a root cause or forecast demand.
+
+The first available year for a company is labelled `insufficient_history`; no
+year-over-year change is invented. Missing periods, currency changes and fiscal
+year gaps also suppress change signals. Use the source references below the
+dashboard to investigate the approved financial records before acting on a
+signal. The deterministic engine is implemented in `supplychainiq/risk.py` and
+does not require a paid AI API.

@@ -6,6 +6,7 @@ from supplychainiq.data_loading import load_approved_data, load_data
 from supplychainiq.validation import DataValidationError, COMPANIES
 from supplychainiq.analysis import analyze
 from supplychainiq.review import freshness_status
+from supplychainiq.risk import RiskConfig, screen_risk
 
 st.set_page_config(page_title="SupplyChainIQ", page_icon="📊", layout="wide")
 st.title("SupplyChainIQ")
@@ -73,11 +74,37 @@ if not demo:
         dashboard_status.append({"Company": company, "Dashboard status": status})
     with st.expander("Company data availability"):
         st.dataframe(pd.DataFrame(dashboard_status), hide_index=True, width="stretch")
+
+with st.sidebar.expander("Risk screening thresholds", expanded=False):
+    st.caption("Rules screen financial warning signals; they do not confirm an operational disruption.")
+    revenue_decline_moderate = st.number_input("Revenue decline: moderate (%)", value=-5.0, step=1.0)
+    revenue_decline_elevated = st.number_input("Revenue decline: elevated (%)", value=-15.0, step=1.0)
+    inventory_growth_moderate = st.number_input("Inventory growth: moderate (%)", value=5.0, step=1.0)
+    inventory_growth_elevated = st.number_input("Inventory growth: elevated (%)", value=15.0, step=1.0)
+    inventory_mix_moderate = st.number_input("Inventory/revenue increase: moderate (pp)", value=3.0, step=1.0)
+    inventory_mix_elevated = st.number_input("Inventory/revenue increase: elevated (pp)", value=8.0, step=1.0)
+    gross_margin_moderate = st.number_input("Gross margin decline: moderate (pp)", value=-2.0, step=1.0)
+    gross_margin_elevated = st.number_input("Gross margin decline: elevated (pp)", value=-5.0, step=1.0)
+    operating_margin_moderate = st.number_input("Operating margin decline: moderate (pp)", value=-3.0, step=1.0)
+    operating_margin_elevated = st.number_input("Operating margin decline: elevated (pp)", value=-8.0, step=1.0)
+config = RiskConfig(
+    revenue_decline_moderate_pct=revenue_decline_moderate,
+    revenue_decline_elevated_pct=revenue_decline_elevated,
+    inventory_growth_moderate_pct=inventory_growth_moderate,
+    inventory_growth_elevated_pct=inventory_growth_elevated,
+    inventory_mix_moderate_pp=inventory_mix_moderate,
+    inventory_mix_elevated_pp=inventory_mix_elevated,
+    gross_margin_decline_moderate_pp=gross_margin_moderate,
+    gross_margin_decline_elevated_pp=gross_margin_elevated,
+    operating_margin_decline_moderate_pp=operating_margin_moderate,
+    operating_margin_decline_elevated_pp=operating_margin_elevated,
+)
 companies = st.sidebar.multiselect("Companies", COMPANIES, default=list(COMPANIES))
 years = sorted(raw.fiscal_year.unique().tolist())
 selected_years = st.sidebar.multiselect("Fiscal years", years, default=years)
 # Calculate growth before filtering so a selected year retains its prior-year comparison.
-df = analyze(raw)
+risk_signals, risk_summary, analyzed = screen_risk(raw, config)
+df = analyzed
 df = df[df.company.isin(companies) & df.fiscal_year.isin(selected_years)]
 if df.empty:
     st.info("Select at least one company and an available fiscal year.")
@@ -99,6 +126,26 @@ st.plotly_chart(px.bar(df, x="fiscal_year", y="revenue", color="company", barmod
 st.subheader("Company comparison")
 st.caption("Latest selected fiscal year per company; check period ends before comparing.")
 st.dataframe(latest[["company", "fiscal_year", "period_end", "currency", "revenue", "inventory", "gross_margin_pct", "revenue_growth_pct"]], hide_index=True, width="stretch")
+
+st.header("Phase 3 · Supply Chain Risk Intelligence")
+st.caption("Deterministic financial screening for planning conversations. Low, Moderate and Elevated levels are warning indicators, not confirmed operational disruptions.")
+selected_risk = risk_summary[risk_summary.company.isin(companies) & risk_summary.fiscal_year.isin(selected_years)].copy()
+selected_signals = risk_signals[risk_signals.company.isin(companies) & risk_signals.fiscal_year.isin(selected_years)].copy()
+if selected_risk.empty:
+    st.info("No comparable annual risk periods are available for the selected filters.")
+else:
+    level_values = {"Low": 0, "Moderate": 1, "Elevated": 2}
+    chart_data = selected_risk.copy()
+    chart_data["risk_score"] = chart_data.risk_level.map(level_values)
+    st.plotly_chart(px.bar(chart_data, x="fiscal_year", y="risk_score", color="risk_level", facet_col="company", range_y=[0, 2], labels={"risk_score": "Screening level (0 Low · 2 Elevated)"}), width="stretch")
+    st.subheader("Risk screening by company and year")
+    st.dataframe(selected_risk, hide_index=True, width="stretch")
+    if selected_signals.empty:
+        st.success("No configured financial warning rules were triggered for the selected periods.")
+    else:
+        st.subheader("Triggered warning signals and recommendations")
+        st.dataframe(selected_signals, hide_index=True, width="stretch")
+        st.download_button("Download risk signals", selected_signals.to_csv(index=False), "supplychainiq_risk_signals.csv", "text/csv")
 st.subheader("Source references")
 if demo:
     st.caption("Synthetic records have no original financial report or publication date.")
