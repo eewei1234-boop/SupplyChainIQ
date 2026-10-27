@@ -95,3 +95,88 @@ cloud application from an iPad.
 The original detailed specification was not present in this session. This
 implementation follows the README and the Phase 1 request. Forecasting, live
 scraping, AI reports and inventory planning simulations are future work.
+
+## Phase 2: evidence-preserving ingestion (feature branch)
+
+Phase 1's demo, CSV import, charts and annual analysis are preserved. A separate
+observation layer now retains individual metrics, rather than forcing partial or
+quarterly reports into complete annual rows. Open **Phase 2 · Ingestion evidence
+and availability** in the dashboard to inspect refresh status and extracted CSVs.
+
+### Sources and refresh
+
+- onsemi: SEC CIK **1097864**, Company Facts structured XBRL.
+- STMicroelectronics: SEC CIK **932787**, Company Facts structured XBRL.
+- Infineon: official investor reports; `official_reports.py` accepts manually
+  transcribed observations alongside the downloaded original document. It does
+  not parse PDFs or claim the transcription is verified.
+- Company Facts endpoints: `https://data.sec.gov/api/xbrl/companyfacts/CIK0001097864.json`
+  and `https://data.sec.gov/api/xbrl/companyfacts/CIK0000932787.json`.
+
+Set `SEC_USER_AGENT` to an application name and your real contact email (required
+by our client for SEC fair access), then run from the repository root:
+
+```bash
+source .venv/bin/activate
+python -m scripts.refresh_data --require-success
+python -m pytest -q
+```
+
+No API key is needed. The script caches original JSON by SHA-256, preserves
+existing files on failed retrieval, records a timestamped availability report,
+and writes extracted observations separately under `data/ingestion/`. Strict mode
+exits unsuccessfully if either SEC issuer cannot be extracted. It never replaces
+`data/public_financials.csv` or the synthetic dataset. The manual GitHub Actions
+workflow runs the tests and refresh, then uploads review artifacts; it never
+commits results. Configure repository variable `SEC_USER_AGENT` before running it.
+Scheduling is intentionally not enabled yet.
+
+### Evidence and verification
+
+Each observation records company, metric, original period dates, period type,
+fiscal-year label, currency, normalized unit (millions), value, filing date,
+source endpoint, filing archive URL, accession, form, XBRL concept, retrieval time,
+evidence hash and verification status. Filing date is used as the regulatory
+publication date, not an earlier earnings-release date. Original units and values
+remain in the cached JSON. Filing URLs point to accession directories; exact
+primary-document identification and table/page reconciliation remain review work.
+
+All automatic and manual imports start as **extracted_pending_review**. Neither
+HTTPS, a checksum nor schema validation establishes financial accuracy. Review
+original documents, consolidated scope, fiscal calendar, units, concept mapping
+and amendments before explicitly setting observations to `reviewed`.
+`annual_dashboard_rows` can validate and convert reviewed, complete, same-filing
+annual observations into the Phase 1 schema. It refuses duplicate annual versions;
+a reviewer must choose the appropriate restatement before saving a public CSV.
+No automatic promotion to the public comparison is performed.
+
+SEC extraction supports explicit GAAP/IFRS concepts for revenue, inventory, gross
+profit, cost of revenue and operating income for period ends in 2023–2026. Unknown
+extensions and missing concepts remain absent. Conflicting concept values stop
+that issuer's extraction. Instant inventory balances, annual flows, discrete
+quarters and YTD flows remain distinct; quarters are never invented by subtraction.
+The current annual display retains its existing growth and inventory ratios;
+quarterly observations are available as evidence, not mixed into annual charts.
+Do not annualize inventory ratios using quarterly sales without a new methodology.
+
+### Current availability and limitations
+
+Live checks in this environment returned proxy **403 Forbidden** for both SEC
+Company Facts URLs and Infineon's official reports site. No historical figures
+have been retrieved or verified here: revenue, inventory, gross profit/margin and
+operating income for all three companies across 2023–2026 remain unavailable.
+The refresh command also requires a real SEC contact user-agent, which is not
+currently configured. Add network access for `data.sec.gov`, `www.sec.gov` and the
+needed company report hosts in your environment settings, then rerun refresh.
+Do not assume all 2026 annual reports have been published.
+
+Company Facts may omit foreign-issuer interim facts and use issuer extensions.
+This initial module has offline fixture coverage, but live payload compatibility
+cannot be confirmed until access works. Fiscal-year labels currently follow the
+period-end year; near-January 52/53-week onsemi periods require fiscal-calendar
+review before promotion. No currency conversion is performed. Infineon's September
+fiscal year remains distinct from peer calendar years. Original period dates must
+always accompany comparisons.
+
+These Phase 2 commands supersede the Phase 1 note that no live API client exists.
+Automated PDF extraction, industry ingestion and AI features remain future work.
