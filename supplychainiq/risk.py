@@ -6,6 +6,7 @@ forecast. All changes require consecutive comparable annual periods.
 """
 
 from dataclasses import dataclass
+import math
 
 import pandas as pd
 
@@ -24,6 +25,23 @@ class RiskConfig:
     gross_margin_decline_elevated_pp: float = -5.0
     operating_margin_decline_moderate_pp: float = -3.0
     operating_margin_decline_elevated_pp: float = -8.0
+
+    def __post_init__(self):
+        lower_pairs = (
+            ("revenue decline", self.revenue_decline_moderate_pct, self.revenue_decline_elevated_pct),
+            ("gross margin decline", self.gross_margin_decline_moderate_pp, self.gross_margin_decline_elevated_pp),
+            ("operating margin decline", self.operating_margin_decline_moderate_pp, self.operating_margin_decline_elevated_pp),
+        )
+        higher_pairs = (
+            ("inventory growth", self.inventory_growth_moderate_pct, self.inventory_growth_elevated_pct),
+            ("inventory/revenue increase", self.inventory_mix_moderate_pp, self.inventory_mix_elevated_pp),
+        )
+        for label, moderate, elevated in lower_pairs:
+            if not math.isfinite(moderate) or not math.isfinite(elevated) or elevated >= moderate:
+                raise ValueError(f"Invalid {label} thresholds: Elevated must be more severe (lower) than Moderate.")
+        for label, moderate, elevated in higher_pairs:
+            if not math.isfinite(moderate) or not math.isfinite(elevated) or elevated <= moderate:
+                raise ValueError(f"Invalid {label} thresholds: Elevated must be more severe (higher) than Moderate.")
 
 
 LEVEL_ORDER = {"Low": 0, "Moderate": 1, "Elevated": 2}
@@ -138,7 +156,7 @@ def screen_risk(frame, config=None):
                 level = "Low"
                 explanation = "No configured warning thresholds were crossed."
             else:
-                level = "Low"
+                level = "Not assessed"
                 explanation = "No consecutive comparable prior fiscal year is available; change-based screening is unavailable."
             summary_rows.append({
                 "company": company,

@@ -87,18 +87,22 @@ with st.sidebar.expander("Risk screening thresholds", expanded=False):
     gross_margin_elevated = st.number_input("Gross margin decline: elevated (pp)", value=-5.0, step=1.0)
     operating_margin_moderate = st.number_input("Operating margin decline: moderate (pp)", value=-3.0, step=1.0)
     operating_margin_elevated = st.number_input("Operating margin decline: elevated (pp)", value=-8.0, step=1.0)
-config = RiskConfig(
-    revenue_decline_moderate_pct=revenue_decline_moderate,
-    revenue_decline_elevated_pct=revenue_decline_elevated,
-    inventory_growth_moderate_pct=inventory_growth_moderate,
-    inventory_growth_elevated_pct=inventory_growth_elevated,
-    inventory_mix_moderate_pp=inventory_mix_moderate,
-    inventory_mix_elevated_pp=inventory_mix_elevated,
-    gross_margin_decline_moderate_pp=gross_margin_moderate,
-    gross_margin_decline_elevated_pp=gross_margin_elevated,
-    operating_margin_decline_moderate_pp=operating_margin_moderate,
-    operating_margin_decline_elevated_pp=operating_margin_elevated,
-)
+try:
+    config = RiskConfig(
+        revenue_decline_moderate_pct=revenue_decline_moderate,
+        revenue_decline_elevated_pct=revenue_decline_elevated,
+        inventory_growth_moderate_pct=inventory_growth_moderate,
+        inventory_growth_elevated_pct=inventory_growth_elevated,
+        inventory_mix_moderate_pp=inventory_mix_moderate,
+        inventory_mix_elevated_pp=inventory_mix_elevated,
+        gross_margin_decline_moderate_pp=gross_margin_moderate,
+        gross_margin_decline_elevated_pp=gross_margin_elevated,
+        operating_margin_decline_moderate_pp=operating_margin_moderate,
+        operating_margin_decline_elevated_pp=operating_margin_elevated,
+    )
+except ValueError as exc:
+    st.sidebar.warning(f"Invalid screening thresholds: {exc} Using the default thresholds.")
+    config = RiskConfig()
 companies = st.sidebar.multiselect("Companies", COMPANIES, default=list(COMPANIES))
 years = sorted(raw.fiscal_year.unique().tolist())
 selected_years = st.sidebar.multiselect("Fiscal years", years, default=years)
@@ -134,10 +138,10 @@ selected_signals = risk_signals[risk_signals.company.isin(companies) & risk_sign
 if selected_risk.empty:
     st.info("No comparable annual risk periods are available for the selected filters.")
 else:
-    level_values = {"Low": 0, "Moderate": 1, "Elevated": 2}
+    level_values = {"Not assessed": -1, "Low": 0, "Moderate": 1, "Elevated": 2}
     chart_data = selected_risk.copy()
     chart_data["risk_score"] = chart_data.risk_level.map(level_values)
-    st.plotly_chart(px.bar(chart_data, x="fiscal_year", y="risk_score", color="risk_level", facet_col="company", range_y=[0, 2], labels={"risk_score": "Screening level (0 Low · 2 Elevated)"}), width="stretch")
+    st.plotly_chart(px.bar(chart_data, x="fiscal_year", y="risk_score", color="risk_level", facet_col="company", range_y=[-1, 2], labels={"risk_score": "Screening level (-1 Not assessed · 0 Low · 2 Elevated)"}), width="stretch")
     st.subheader("Risk screening by company and year")
     st.dataframe(selected_risk, hide_index=True, width="stretch")
     if selected_signals.empty:

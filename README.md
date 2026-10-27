@@ -283,9 +283,11 @@ practical demand-planning or supply-planning recommendation. The screening
 levels are Low, Moderate and Elevated indicators only. They do not confirm an
 operational disruption, identify a root cause or forecast demand.
 
-The first available year for a company is labelled `insufficient_history`; no
-year-over-year change is invented. Missing periods, currency changes and fiscal
-year gaps also suppress change signals. Use the source references below the
-dashboard to investigate the approved financial records before acting on a
+The first available year for a company has `comparison_status=insufficient_history`
+and risk level `Not assessed`; no year-over-year change is invented. Missing
+periods, currency changes and fiscal-year gaps also suppress change signals.
+Elevated thresholds must be more severe than their Moderate counterparts; invalid
+sidebar settings show a warning and use safe defaults. Use the source references
+below the dashboard to investigate approved financial records before acting on a
 signal. The deterministic engine is implemented in `supplychainiq/risk.py` and
 does not require a paid AI API.
