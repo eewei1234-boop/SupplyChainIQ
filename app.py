@@ -56,6 +56,15 @@ with st.expander("Phase 2 · Ingestion evidence and availability"):
         st.write(observation_file.stem)
         st.dataframe(observations, hide_index=True)
         st.download_button(f"Download {observation_file.stem} observations", observations.to_csv(index=False), observation_file.name)
+review_dir = Path(__file__).resolve().parent / "data" / "review"
+infineon_manifest = review_dir / "infineon_report_sources.json"
+if infineon_manifest.exists():
+    with st.expander("Infineon official-report availability"):
+        st.caption("Infineon uses September 30 fiscal year ends. Blank candidate values remain unavailable until the original IFRS consolidated reports are checked.")
+        st.json(json.loads(infineon_manifest.read_text()))
+        infineon_candidates = review_dir / "Infineon_annual_fy2024_fy2025.csv"
+        if infineon_candidates.exists():
+            st.dataframe(pd.read_csv(infineon_candidates), hide_index=True, width="stretch")
 if raw.empty:
     st.warning("No verified or approved real financial figures are available. Infineon is awaiting official-report verification; onsemi and ST observations have matched SEC evidence but still require human approval. Upload a sourced annual CSV or enable synthetic demonstration data in the sidebar.")
     availability = pd.DataFrame({"Company": list(COMPANIES), "Dashboard status": ["Awaiting official-report verification", "Source reconciled; approval pending", "Source reconciled; approval pending"]})
@@ -65,10 +74,10 @@ if raw.empty:
 if not demo:
     dashboard_status = []
     for company in COMPANIES:
-        if company == "Infineon Technologies":
-            status = "Awaiting official-report verification"
-        elif company in set(raw.company):
+        if company in set(raw.company):
             status = "Approved and available"
+        elif company == "Infineon Technologies":
+            status = "Awaiting official-report verification"
         else:
             status = "Pending source reconciliation"
         dashboard_status.append({"Company": company, "Dashboard status": status})

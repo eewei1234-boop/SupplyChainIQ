@@ -93,3 +93,13 @@ def test_real_screening_uses_approved_companies_only():
     assert set(summary.company) == {"onsemi", "STMicroelectronics"}
     assert "Infineon Technologies" not in set(signals.company)
     assert signals.source_url.str.startswith("https://").all()
+
+
+def test_eur_and_usd_companies_are_screened_within_company_only():
+    usd = frame([(2024, 100, 60, 20, 20), (2025, 80, 60, 4, 30)])
+    eur = usd.copy()
+    eur["company"] = "Infineon Technologies"
+    eur["currency"] = "EUR"
+    _, summary, _ = screen_risk(pd.concat([usd, eur], ignore_index=True))
+    assert set(summary.company) == {"onsemi", "Infineon Technologies"}
+    assert set(summary[summary.fiscal_year == 2025].risk_level) == {"Elevated"}

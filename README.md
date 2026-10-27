@@ -291,3 +291,29 @@ sidebar settings show a warning and use safe defaults. Use the source references
 below the dashboard to investigate approved financial records before acting on a
 signal. The deterministic engine is implemented in `supplychainiq/risk.py` and
 does not require a paid AI API.
+
+## Phase 3.5: Infineon official-report integration
+
+Infineon uses an October 1–September 30 fiscal year. The integration helpers
+therefore require FY2024 `2023-10-01` through `2024-09-30` and FY2025
+`2024-10-01` through `2025-09-30`, preserve EUR millions, require IFRS
+consolidated scope and require an exact report page. `Segment Result` is rejected
+as a substitute for consolidated operating income; it is a segment measure and
+must not be silently relabelled.
+
+`data/review/infineon_report_sources.json` records the official investor-relations
+index and the retrieval status for both reports. Run
+`python -m scripts.fetch_infineon_reports` only after supplying direct official
+PDF URLs. The script preserves downloaded PDFs under
+`data/ingestion/infineon/evidence/`, records retrieval timestamps and SHA-256
+hashes, and never extracts or approves figures automatically.
+
+During this phase the Infineon investor-relations site returned proxy
+`403 Forbidden`, and no direct PDF URL was available in the repository. No
+Infineon report bytes or financial values were added, and the dashboard continues
+to show Infineon as awaiting verification. To complete the integration, provide
+the official FY2024 and FY2025 PDF URLs, inspect the consolidated IFRS income
+statement and balance sheet pages, record revenue, cost of sales, consolidated
+operating income (or document the exact equivalent), and inventories in EUR
+millions, then run the existing review and approval workflow. The risk engine
+keeps Infineon's EUR history separate from the USD peer histories.
