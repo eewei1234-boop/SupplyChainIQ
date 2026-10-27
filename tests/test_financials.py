@@ -70,7 +70,10 @@ def test_public_url_required_and_synthetic_import_rejected():
 def test_dashboard_public_demo_filter_and_empty_states():
     app = AppTest.from_file(str(__import__('pathlib').Path(__file__).resolve().parents[1] / 'app.py')).run(timeout=30)
     assert not app.exception
-    assert 'No verified' in app.warning[0].value
+    # Real mode now contains two companies' independently reconciled FY2024/FY2025
+    # audited records. The old Phase 1 empty-state expectation no longer applies.
+    assert len(app.metric) == 2
+    assert not any('SYNTHETIC' in warning.value for warning in app.warning)
     app.sidebar.toggle[0].set_value(True).run()
     assert not app.exception
     assert len(app.metric) == 3
