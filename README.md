@@ -206,12 +206,15 @@ containing `approved after source reconciliation`. The dashboard's real-data
 mode reads only that approved file. Extracted, unreconciled, duplicate and
 synthetic rows cannot appear in the real comparison.
 
-The attached Phase 2.5 review ZIP was not available in the coding workspace, so
-no company CSV or SEC JSON could be inspected here. The committed review summary
-therefore records zero observations and the dashboard reports onsemi and ST as
-pending source reconciliation. Infineon remains awaiting official-report
-verification. No values were copied, inferred or marked verified. Once the
-archive is available, rerun the command and inspect every `review_reason` before
+The Phase 2.5 review archive currently contains 172 onsemi observations, 29
+STMicroelectronics observations and two SEC Company Facts JSON files. The review
+matches all 201 rows to their issuer, concept, accession, period, value and
+evidence hash. It identifies 161 same-value historical repeats across filings
+and 40 observations with a single current filing context. There are no
+conflicting values in this archive. Repeated values still require a reviewer to
+choose the filing context; they are retained rather than silently discarded.
+Infineon remains awaiting official-report verification. No values were marked
+approved or verified automatically. Inspect every `review_reason` before
 approving any row.
 
 The dashboard shows a last extraction attempt from `refresh_status.json`, but

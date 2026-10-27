@@ -45,7 +45,7 @@ with st.expander("Phase 2 · Ingestion evidence and availability"):
         st.caption(f"Last extraction attempt: {freshness['attempted_at']} · {freshness['message']}")
     else:
         st.caption(freshness["message"])
-    st.caption("Extracted observations are pending review. They do not automatically enter the annual comparison. Quarterly and year-to-date records remain separate.")
+    st.caption("Extracted observations show source reconciliation separately from approval. They do not automatically enter the annual comparison. Quarterly and year-to-date records remain separate.")
     if status_file.exists():
         st.json(json.loads(status_file.read_text()))
     for observation_file in sorted(evidence_dir.glob("*.csv")):
@@ -56,8 +56,8 @@ with st.expander("Phase 2 · Ingestion evidence and availability"):
         st.dataframe(observations, hide_index=True)
         st.download_button(f"Download {observation_file.stem} observations", observations.to_csv(index=False), observation_file.name)
 if raw.empty:
-    st.warning("No verified or approved real financial figures are available. Infineon is awaiting official-report verification; onsemi and ST observations remain pending review until the source archive is reconciled. Upload a sourced annual CSV or enable synthetic demonstration data in the sidebar.")
-    availability = pd.DataFrame({"Company": list(COMPANIES), "Dashboard status": ["Awaiting official-report verification", "Pending source reconciliation", "Pending source reconciliation"]})
+    st.warning("No verified or approved real financial figures are available. Infineon is awaiting official-report verification; onsemi and ST observations have matched SEC evidence but still require human approval. Upload a sourced annual CSV or enable synthetic demonstration data in the sidebar.")
+    availability = pd.DataFrame({"Company": list(COMPANIES), "Dashboard status": ["Awaiting official-report verification", "Source reconciled; approval pending", "Source reconciled; approval pending"]})
     st.dataframe(availability, hide_index=True, width="stretch")
     st.stop()
 

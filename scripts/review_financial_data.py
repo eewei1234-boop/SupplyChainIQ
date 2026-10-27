@@ -27,10 +27,16 @@ def main():
         ),
         "observation_count": int(len(review)),
         "source_reconciled_pending_approval": int((review.review_status == "source_reconciled_pending_approval").sum()) if not review.empty else 0,
+        "exact_source_matches": int((review.reconciliation_status == "source_reconciled_pending_approval").sum()) if not review.empty else 0,
+        "unreconciled": int((review.reconciliation_status == "unreconciled").sum()) if not review.empty else 0,
         "repeated_historical_pending_approval": int((review.review_status == "repeated_historical_pending_approval").sum()) if not review.empty else 0,
         "duplicate_period_unresolved": int((review.review_status == "duplicate_period_unresolved").sum()) if not review.empty else 0,
         "approved_count": int(len(approved)),
-        "note": "No observations are approved automatically. Missing ZIP/CSV evidence remains empty.",
+        "note": (
+            "No observations are approved automatically; review duplicates and filing context before approval."
+            if len(review)
+            else "No observations are approved automatically. Missing ZIP/CSV evidence remains empty."
+        ),
     }
     pd.Series(status).to_json(directory / "review_summary.json", indent=2)
     print(pd.Series(status).to_string())

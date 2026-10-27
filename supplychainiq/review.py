@@ -21,6 +21,8 @@ import pandas as pd
 from .ingestion import FIELDS, validate_observations
 
 REVIEW_FIELDS = FIELDS + [
+    "reconciliation_status",
+    "reconciliation_reason",
     "review_status",
     "review_reason",
     "evidence_file",
@@ -97,7 +99,13 @@ def review_extracted_directory(directory):
         validate_observations(candidate_rows)
         for row in candidate_rows:
             status, reason, evidence_file = reconcile_observation(row, evidence_dir)
-            row.update(review_status=status, review_reason=reason, evidence_file=evidence_file)
+            row.update(
+                reconciliation_status=status,
+                reconciliation_reason=reason,
+                review_status=status,
+                review_reason=reason,
+                evidence_file=evidence_file,
+            )
             rows.append(row)
     if not rows:
         return pd.DataFrame(columns=REVIEW_FIELDS)
@@ -124,6 +132,7 @@ def approved_observations(reviewed):
         return pd.DataFrame(columns=APPROVED_FIELDS)
     frame = reviewed.copy()
     allowed = frame["review_status"].eq("approved")
+    allowed &= frame["reconciliation_status"].eq("source_reconciled_pending_approval")
     allowed &= frame["verification_status"].eq("reviewed")
     allowed &= frame["review_reason"].str.contains("approved", case=False, na=False)
     allowed &= frame["review_status"].ne("duplicate_period_unresolved")

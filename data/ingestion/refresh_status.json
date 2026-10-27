@@ -1,15 +1,13 @@
 {
-  "attempted_at": "2026-10-27T04:32:05.448736+00:00",
+  "attempted_at": "2026-10-27T05:10:43.367434+00:00",
   "companies": {
     "onsemi": {
-      "status": "unavailable",
-      "error": "Set SEC_USER_AGENT to an application name and real contact email per SEC fair-access guidance",
-      "existing_data_preserved": true
+      "status": "extracted_pending_review",
+      "observations": 172
     },
     "STMicroelectronics": {
-      "status": "unavailable",
-      "error": "Set SEC_USER_AGENT to an application name and real contact email per SEC fair-access guidance",
-      "existing_data_preserved": true
+      "status": "extracted_pending_review",
+      "observations": 29
     },
     "Infineon Technologies": {
       "status": "unavailable",
